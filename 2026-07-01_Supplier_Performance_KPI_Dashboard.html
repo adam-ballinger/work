@@ -108,6 +108,24 @@
   .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+  .metric-info {
+    background: #fbfbfa;
+    border: 1px solid #e5e3de;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .metric-info h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b6b6b;
+    margin: 0 0 12px 0;
+  }
+  .metric-info .info-row { margin-bottom: 10px; font-size: 13px; line-height: 1.55; }
+  .metric-info .info-row:last-of-type { margin-bottom: 0; }
+  .metric-info .info-label { font-weight: 600; color: #1a1a1a; }
+  .metric-info .source { font-size: 11px; color: #9a9a9a; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -131,6 +149,16 @@
     <h2>Fill Rate — Target 98%</h2>
     <div class="chart-wrap"><canvas id="fillRateChart"></canvas></div>
   </div>
+
+  <div class="metric-info">
+    <h3>About This Metric</h3>
+    <div class="info-row"><span class="info-label">What it measures:</span> A purchase order (PO) is considered "filled" when all ordered SKU quantities are received at Home Depot's Rapid Deployment Center (RDC). Fill Rate reflects how completely we ship what Home Depot ordered.</div>
+    <div class="info-row"><span class="info-label">How it's calculated:</span> Quantity Received ÷ Quantity Ordered on the PO. Home Depot aggregates weekly data into a monthly result and evaluates each PO over an 8-week assessment window starting the week it's expected to arrive at the RDC.</div>
+    <div class="info-row"><span class="info-label">Threshold & offset:</span> Home Depot's expectation is 100%, with a 98% compliance threshold. If our actualized Fill Rate falls below 98%, we're charged a financial offset equal to 10% of the value of each unshipped unit.</div>
+    <div class="info-row"><span class="info-label">How the performance management program works:</span> Home Depot evaluates performance monthly at the Merchandise Vendor (MVendor) level through its Supplier Performance Management (SPM) tool, then applies any financial offsets at the Payables Vendor level on the next payment cycle. "Pre Dispute" is the raw, as-reported result; when we believe a violation is incorrect, we file a formal Non-Compliance Dispute, and "Post Dispute" reflects the outcome after that review.</div>
+    <div class="source">Source: Home Depot Supplier Hub — Compliance Program Overview (2026-07-01)</div>
+  </div>
+
   <div class="chart-card">
     <div class="section-title">Monthly Detail — Fill Rate</div>
     <table id="fillRateTable">
@@ -149,6 +177,16 @@
     <h2>On-Time Delivery — Target 90%</h2>
     <div class="chart-wrap"><canvas id="onTimeChart"></canvas></div>
   </div>
+
+  <div class="metric-info">
+    <h3>About This Metric</h3>
+    <div class="info-row"><span class="info-label">What it measures:</span> Since our shipments are prepaid to Home Depot's RDC, this metric is simply whether each shipment arrived on schedule.</div>
+    <div class="info-row"><span class="info-label">How it's calculated:</span> A shipment is on-time if its Trailer Check-In timestamp at the RDC is on or before the Expected Delivery Date on the PO.</div>
+    <div class="info-row"><span class="info-label">Threshold & offset:</span> Home Depot's expectation is 100%, with a 90% compliance threshold. Missing it triggers a financial offset equal to 10% of the gross value of each late shipment.</div>
+    <div class="info-row"><span class="info-label">How the performance management program works:</span> Same monthly cadence as Fill Rate — Home Depot evaluates performance at the Merchandise Vendor (MVendor) level via the SPM tool and applies offsets at the Payables Vendor level. A formal Non-Compliance Dispute Process is available if we believe a late-shipment call is wrong; "Pre Dispute" vs. "Post Dispute" in the chart above reflect that review.</div>
+    <div class="source">Source: Home Depot Supplier Hub — Compliance Program Overview (2026-07-01)</div>
+  </div>
+
   <div class="chart-card">
     <div class="section-title">Monthly Detail — On-Time Delivery</div>
     <table id="onTimeTable">
