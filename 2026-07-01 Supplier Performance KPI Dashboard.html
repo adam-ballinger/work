@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f7f7f5;
+    color: #1a1a1a;
+    padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0 0 2px 0; }
+  .subtitle { color: #6b6b6b; font-size: 13px; margin-bottom: 20px; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e5e3de;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card .label { font-size: 12px; color: #6b6b6b; text-transform: uppercase; letter-spacing: 0.03em; }
+  .card .value { font-size: 26px; font-weight: 600; margin: 6px 0 2px 0; }
+  .card .meta { font-size: 12px; }
+  .pass { color: #1a7a3c; }
+  .fail { color: #c0392b; }
+  .neutral { color: #6b6b6b; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+  .badge.pass { background: #e6f4ea; color: #1a7a3c; }
+  .badge.fail { background: #fdecea; color: #c0392b; }
+  .badge.neutral { background: #eee; color: #6b6b6b; }
+  .chart-card {
+    background: #fff;
+    border: 1px solid #e5e3de;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .chart-card h2 { font-size: 15px; margin: 0 0 10px 0; }
+  .chart-wrap { position: relative; height: 300px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e5e3de;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #efede8; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: #f2f0eb; font-weight: 600; color: #444; }
+  td.miss { color: #c0392b; font-weight: 600; }
+  td.hit { color: #1a7a3c; }
+  td.na { color: #b0b0b0; }
+  .section-title { font-size: 15px; font-weight: 600; margin: 0 0 10px 0; }
+  .footnote { font-size: 12px; color: #8a8a8a; margin-top: 10px; }
+  .exec-summary {
+    background: #fff;
+    border: 1px solid #e5e3de;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .exec-summary .section-title { display: flex; align-items: center; gap: 8px; }
+  .exec-summary ul { margin: 0; padding-left: 18px; }
+  .exec-summary li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+  .exec-summary li:last-child { margin-bottom: 0; }
+  .exec-summary strong.fail { color: #c0392b; }
+  .exec-summary strong.pass { color: #1a7a3c; }
+  .exec-summary strong.neutral { color: #6b6b6b; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #e5e3de;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #6b6b6b;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: #1a1a1a; }
+  .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Home Depot Supplier Performance KPI Dashboard</h1>
+<div class="subtitle">Source: 2026-07-01 Supplier Performance KPI.xlsx &nbsp;•&nbsp; Trailing 12 months, Jul 2025 – Jun 2026</div>
+
+<div class="exec-summary">
+  <div class="section-title">Executive Summary</div>
+  <ul id="execSummaryList"></ul>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="fillrate">Fill Rate</button>
+  <button class="tab-btn" data-tab="ontime">On-Time Delivery</button>
+</div>
+
+<div id="fillrate-panel" class="tab-panel active">
+  <div class="cards" id="fillrate-cards"></div>
+  <div class="chart-card">
+    <h2>Fill Rate — Target 98%</h2>
+    <div class="chart-wrap"><canvas id="fillRateChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="section-title">Monthly Detail — Fill Rate</div>
+    <table id="fillRateTable">
+      <thead>
+        <tr><th>Month</th><th>Pre Dispute</th><th>Post Dispute</th><th>Target</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="footnote">"Pre Dispute" / "Post Dispute" reflect KPI values before and after dispute resolution with the customer. Blank cells indicate no data reported for that month.</div>
+  </div>
+</div>
+
+<div id="ontime-panel" class="tab-panel">
+  <div class="cards" id="ontime-cards"></div>
+  <div class="chart-card">
+    <h2>On-Time Delivery — Target 90%</h2>
+    <div class="chart-wrap"><canvas id="onTimeChart"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="section-title">Monthly Detail — On-Time Delivery</div>
+    <table id="onTimeTable">
+      <thead>
+        <tr><th>Month</th><th>Pre Dispute</th><th>Post Dispute</th><th>Target</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="footnote">"Pre Dispute" / "Post Dispute" reflect KPI values before and after dispute resolution with the customer. Blank cells indicate no data reported for that month.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script>
+const months = ["2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"];
+
+const fillRate = {
+  pre:    [0.8987,0.9434,0.9548,0.9543,0.9625,0.9617,0.9429,0.9286,0.9668,null,null,null],
+  post:   [1.0,0.9932,0.9936,1.0,1.0,1.0,1.0,null,null,null,null,null],
+  target: 0.98
+};
+
+const onTime = {
+  pre:    [1.0,0.9983,0.9999,1.0,1.0,0.9966,1.0,1.0,0.961,null,null,null],
+  post:   [1.0,0.9983,0.9999,1.0,1.0,0.9966,1.0,null,null,null,null,null],
+  target: 0.90
+};
+
+function pct(v){ return v === null || v === undefined ? null : Math.round(v*1000)/10; }
+function fmtPct(v){ return v === null || v === undefined ? "—" : (v*100).toFixed(1) + "%"; }
+
+function lastAvailable(arr){
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (arr[i] !== null && arr[i] !== undefined) return { value: arr[i], month: months[i], idx: i };
+  }
+  return null;
+}
+
+function avg(arr){
+  const vals = arr.filter(v => v !== null && v !== undefined);
+  if (!vals.length) return null;
+  return vals.reduce((a,b)=>a+b,0) / vals.length;
+}
+
+function hitRate(arr, target){
+  const vals = arr.filter(v => v !== null && v !== undefined);
+  if (!vals.length) return null;
+  const hits = vals.filter(v => v >= target).length;
+  return hits / vals.length;
+}
+
+function missingMonths(arr){
+  return arr.map((v,i) => v === null || v === undefined ? months[i] : null).filter(Boolean);
+}
+
+function tag(text, cls){ return `<strong class="${cls}">${text}</strong>`; }
+
+// --- Cards ---
+function makeCard(label, latest, target, avgVal, hitRateVal){
+  const meetsTarget = latest !== null && latest.value >= target;
+  const cls = latest === null ? 'neutral' : (meetsTarget ? 'pass' : 'fail');
+  const badgeText = latest === null ? 'No data' : (meetsTarget ? 'On target' : 'Below target');
+  return `
+    <div class="card">
+      <div class="label">${label}</div>
+      <div class="value ${cls}">${latest ? fmtPct(latest.value) : '—'}</div>
+      <div class="meta neutral">${latest ? 'Latest: ' + latest.month : 'No months reported'} vs target ${fmtPct(target)}</div>
+      <div class="meta neutral">12-mo avg: ${avgVal !== null ? fmtPct(avgVal) : '—'} • Months hitting target: ${hitRateVal !== null ? Math.round(hitRateVal*100) + '%' : '—'}</div>
+      <span class="badge ${cls}">${badgeText}</span>
+    </div>`;
+}
+
+const frLatest = lastAvailable(fillRate.post);
+const otLatest = lastAvailable(onTime.post);
+
+document.getElementById('fillrate-cards').innerHTML =
+  makeCard('Fill Rate (Post Dispute)', frLatest, fillRate.target, avg(fillRate.post), hitRate(fillRate.post, fillRate.target));
+document.getElementById('ontime-cards').innerHTML =
+  makeCard('On-Time Delivery (Post Dispute)', otLatest, onTime.target, avg(onTime.post), hitRate(onTime.post, onTime.target));
+
+// --- Executive Summary ---
+function recentTrend(arr, n){
+  const available = arr.map((v,i) => ({v, i})).filter(x => x.v !== null && x.v !== undefined);
+  if (available.length < n*2) return null;
+  const recent = available.slice(-n).map(x => x.v);
+  const prior = available.slice(-n*2, -n).map(x => x.v);
+  const recentAvg = recent.reduce((a,b)=>a+b,0)/recent.length;
+  const priorAvg = prior.reduce((a,b)=>a+b,0)/prior.length;
+  return { recentAvg, priorAvg, delta: recentAvg - priorAvg };
+}
+
+const execList = [];
+
+if (frLatest) {
+  const meets = frLatest.value >= fillRate.target;
+  const gap = Math.abs(frLatest.value - fillRate.target) * 100;
+  execList.push(
+    `Fill Rate is ${meets ? tag('on target','pass') : tag('below target','fail')} at ` +
+    `${tag(fmtPct(frLatest.value), meets ? 'pass':'fail')} in ${frLatest.month} versus the ${fmtPct(fillRate.target)} target` +
+    (meets ? '.' : ` — a gap of ${gap.toFixed(1)} points.`)
+  );
+  const trend = recentTrend(fillRate.post, 3);
+  if (trend) {
+    const dir = trend.delta > 0.002 ? 'improved' : (trend.delta < -0.002 ? 'declined' : 'held steady');
+    execList.push(`Fill Rate has ${tag(dir, dir === 'declined' ? 'fail' : (dir === 'improved' ? 'pass' : 'neutral'))} over the last 3 reported months (${fmtPct(trend.recentAvg)} vs. ${fmtPct(trend.priorAvg)} in the prior 3).`);
+  }
+  const frMissing = missingMonths(fillRate.post);
+  if (frMissing.length) {
+    execList.push(`Fill Rate (Post Dispute) is unreported for ${frMissing.length} month${frMissing.length>1?'s':''}: ${frMissing.join(', ')}. This is a ${tag('Home Depot-side reporting gap', 'neutral')}, outside our direct control.`);
+  }
+}
+
+if (otLatest) {
+  const meets = otLatest.value >= onTime.target;
+  execList.push(
+    `On-Time Delivery is ${meets ? tag('on target','pass') : tag('below target','fail')} at ` +
+    `${tag(fmtPct(otLatest.value), meets ? 'pass':'fail')} as of ${otLatest.month} versus the ${fmtPct(onTime.target)} target.`
+  );
+} else {
+  execList.push(`On-Time Delivery has ${tag('no reported data','fail')} in the trailing 12 months.`);
+}
+const otMissing = missingMonths(onTime.post);
+if (otMissing.length) {
+  execList.push(`On-Time Delivery reporting has a ${tag('gap', 'fail')} covering ${otMissing.length} consecutive month${otMissing.length>1?'s':''} (${otMissing.join(', ')}).`);
+}
+
+execList.push(`Both reporting gaps originate on ${tag('Home Depot’s side', 'neutral')} and are not directly within our control. We are working to close them by obtaining ${tag('preliminary receiving discrepancy data', 'neutral')} from Home Depot's supply chain team, which would let us reconcile Fill Rate and On-Time performance ahead of their official post-dispute reporting.`);
+
+document.getElementById('execSummaryList').innerHTML = execList.map(item => `<li>${item}</li>`).join('');
+
+// --- Charts ---
+function buildChart(canvasId, data, target){
+  return new Chart(document.getElementById(canvasId), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Pre Dispute',
+          data: data.pre.map(pct),
+          borderColor: '#b0b0b0',
+          backgroundColor: '#b0b0b0',
+          borderDash: [4,3],
+          tension: 0.2,
+          spanGaps: true,
+          pointRadius: 3
+        },
+        {
+          label: 'Post Dispute',
+          data: data.post.map(pct),
+          borderColor: '#2563eb',
+          backgroundColor: '#2563eb',
+          tension: 0.2,
+          spanGaps: true,
+          pointRadius: 3,
+          borderWidth: 2.5
+        },
+        {
+          label: 'Target',
+          data: months.map(() => target*100),
+          borderColor: '#c0392b',
+          borderDash: [6,4],
+          pointRadius: 0,
+          borderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+      scales: {
+        y: { title: { display: true, text: '%' }, ticks: { callback: v => v + '%' } }
+      }
+    }
+  });
+}
+
+// --- Tables ---
+function cell(v, target){
+  if (v === null || v === undefined) return `<td class="na">—</td>`;
+  const cls = v >= target ? 'hit' : 'miss';
+  return `<td class="${cls}">${fmtPct(v)}</td>`;
+}
+
+function fillTable(tbodySelector, data){
+  document.querySelector(tbodySelector).innerHTML = months.map((m, i) => `
+    <tr>
+      <td>${m}</td>
+      ${cell(data.pre[i], data.target)}
+      ${cell(data.post[i], data.target)}
+      <td>${fmtPct(data.target)}</td>
+    </tr>
+  `).join('');
+}
+
+fillTable('#fillRateTable tbody', fillRate);
+fillTable('#onTimeTable tbody', onTime);
+
+// --- Tabs (lazy-build charts only once their panel is visible) ---
+let fillRateChartInstance = null;
+let onTimeChartInstance = null;
+
+function showTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('fillrate-panel').classList.toggle('active', tab === 'fillrate');
+  document.getElementById('ontime-panel').classList.toggle('active', tab === 'ontime');
+
+  if (tab === 'fillrate' && !fillRateChartInstance) {
+    fillRateChartInstance = buildChart('fillRateChart', fillRate, fillRate.target);
+  } else if (tab === 'fillrate' && fillRateChartInstance) {
+    fillRateChartInstance.resize();
+  }
+
+  if (tab === 'ontime' && !onTimeChartInstance) {
+    onTimeChartInstance = buildChart('onTimeChart', onTime, onTime.target);
+  } else if (tab === 'ontime' && onTimeChartInstance) {
+    onTimeChartInstance.resize();
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => showTab(btn.dataset.tab));
+});
+
+showTab('fillrate');
+</script>
+</body>
+</html>
